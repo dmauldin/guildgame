@@ -21,6 +21,7 @@ class Hero {
     this.baseHealth = 10.0;
     this.currentHealth = this.baseHealth;
     this.weapon = null;
+    this.mitigation = 0;
   }
 
   alive() {
@@ -37,10 +38,13 @@ class Hero {
  */
 class Warrior extends Hero {
 
-  constructor(name) {
+  constructor(name, mitigation) {
     super();
     this.name = name;
     this.weapon = new Weapon('Axe', 2.0);
+    if (mitigation > 0) {
+      this.mitigation = Math.random() * mitigation + (mitigation / 2);
+    }
   }
 
   attack(target) {
@@ -48,13 +52,17 @@ class Warrior extends Hero {
     // todo(dmauldin): damageVariance should be part of Weapon
     damage += this.damageVariance(damage);
     damage = damage.toFixed(1);
-    target.receiveDamage(damage);
-    console.log(this.name + ' does ' + damage + ' damage to ' + target.name + '[' + target.currentHealth + ']');
+    let receivedDamage = target.receiveDamage(damage);
+    console.log(this.name + ' does ' + damage + '(' + receivedDamage + ')'+ ' damage to ' + target.name + '[' + target.currentHealth + ']');
   }
 
   receiveDamage(damage) {
-    this.currentHealth -= damage;
+    let mitigatedDamage = (damage * this.mitigation).toFixed(1);
+    let modifiedDamage = (damage - mitigatedDamage).toFixed(1);
+    this.currentHealth -= modifiedDamage;
+    this.currentHealth = this.currentHealth.toFixed(1);
     if (this.currentHealth < 0) { this.currentHealth = 0; }
+    return mitigatedDamage;
   }
 
   damageVariance(damage) {
@@ -63,8 +71,10 @@ class Warrior extends Hero {
   }
 }
 
-let a = new Warrior('Bertrand');
-let b = new Warrior('Diego');
+// testing class usage
+
+let a = new Warrior('AAA', 0.1);
+let b = new Warrior('BBB');
 
 while (b.currentHealth > 0 && a.currentHealth > 0) {
   a.attack(b);
